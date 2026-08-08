@@ -1,0 +1,39 @@
+server:
+  port: 8080
+
+aws:
+  region: ${AWS_REGION:ap-south-1}
+  cognito:
+    user-pool-id: ${COGNITO_USER_POOL_ID:}
+    client-id: ${COGNITO_CLIENT_ID:}
+    # Only set this if your Cognito App Client has "Generate client secret" enabled.
+    # Leave blank for a public client (the normal choice for a mobile app).
+    client-secret: ${COGNITO_CLIENT_SECRET:}
+  s3:
+    profile-photo-bucket: ${PROFILE_PHOTO_BUCKET:}
+  dynamodb:
+    # Leave blank in production — talks to real regional DynamoDB using the same
+    # role as everything else. Set to http://localhost:8000 for local dev against
+    # the DynamoDB Local container in docker-compose.yml.
+    endpoint-override: ${DYNAMODB_ENDPOINT_OVERRIDE:}
+    rate-limits-table: ${DYNAMODB_RATE_LIMITS_TABLE:auth-rate-limits}
+
+otp:
+  expiry-seconds: 300
+  rate-limit:
+    max-requests-per-phone-per-hour: 3
+
+user-profile-service:
+  base-url: ${USER_PROFILE_SERVICE_BASE_URL:}
+  internal-auth:
+    # auth-pool's OAuth2 token endpoint (Cognito Hosted UI domain for the M2M pool),
+    # e.g. https://<auth-pool-domain>.auth.ap-south-1.amazoncognito.com/oauth2/token
+    token-uri: ${INTERNAL_AUTH_TOKEN_URI:}
+    client-id: ${INTERNAL_AUTH_CLIENT_ID:}
+    client-secret: ${INTERNAL_AUTH_CLIENT_SECRET:}
+    # Must match user-profile-service's internal.auth.required-scope exactly.
+    scope: ${INTERNAL_AUTH_SCOPE:}
+
+logging:
+  level:
+    com.studyowl.authservice: DEBUG

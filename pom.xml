@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.3.5</version>
+    <version>3.5.5</version>
     <relativePath/>
   </parent>
 
@@ -18,7 +18,7 @@
   <description>StudyOwl phone-number/OTP auth backend, backed by AWS Cognito</description>
 
   <properties>
-    <java.version>17</java.version>
+    <java.version>25</java.version>
     <!-- 2.29.11 predates Cognito's USER_AUTH/SMS_OTP model classes (verified by
          inspecting the jar directly) — needs >= the version that added them. -->
     <awssdk.version>2.49.3</awssdk.version>

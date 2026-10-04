@@ -143,3 +143,58 @@ reading it thinking it's authoritative for anything.
 
 **Hook point:** `CognitoAuthService.createPasswordLessUser()` /
 `buildCreateProfileRequest()` (now clean of it), `CompleteProfileRequest.java`.
+
+## 7. No way to safely add/change a phone number or email on an existing account
+
+**Status:** not implemented. The Android app's profile-edit screen intentionally
+shows phone/email as locked/view-only (not editable) specifically because of
+this gap — see WiseOwl's ProfileDetailsScreen.
+
+**Why it matters:** Cognito's *username* for a user in this pool is literally
+whatever identifier (phone or email) they first signed up with (see
+`createPasswordLessUser`) — each Cognito user has exactly one identity
+attribute set, never both, and there's no linking between them today.
+`user-profile-service`'s `phoneNumber`/`email` fields are completely
+disconnected from Cognito — `PATCH /profiles/me` only ever writes profile
+data, never touches the Cognito user.
+
+If a user who signed up with a phone number were allowed to just type an
+email into a profile-edit field and save it, that email would become inert
+contact info at best — but if they later tried to *log in* with that email,
+`requestOtp` → `userExists` would find no matching Cognito user and
+`createPasswordLessUser` would silently create a **second, completely
+disconnected account** with a different `userId`/`sub`. Same human, two
+unlinked StudyOwl accounts, no merge path. This is what makes it unsafe to
+just add a text field for this — the failure mode isn't a validation error,
+it's silent account duplication.
+
+**How it would work (the real-world pattern — WhatsApp/Google-style
+"verify while already logged in, then link"):**
+1. User must already be authenticated (proves ownership of the existing
+   account) — this can never be a step available from the sign-in screen.
+2. User enters the new phone/email they want to add.
+3. Send a fresh OTP to *that new identifier specifically* — a distinct
+   verification step from login, reusing the same SMS_OTP/EMAIL_OTP
+   mechanism `requestOtp`/`confirmOtp` already use, just scoped to linking
+   instead of authenticating.
+4. Only once that OTP is confirmed, call Cognito's `AdminUpdateUserAttributes`
+   on the caller's *existing* Cognito user (identified by their already-known
+   `userId`/`sub` — never by treating the new value as a fresh username) to
+   attach the second identifier.
+5. Requires the User Pool to have **alias attributes** enabled for
+   email/phone_number, so `AdminGetUser`/`AdminInitiateAuth` username lookups
+   also resolve by the newly-attached value going forward — without this,
+   `userExists`/`requestOtp` would still only recognize the original
+   identifier for login purposes even after step 4.
+6. Once linked, `user-profile-service`'s `phoneNumber`/`email` fields can be
+   updated to match, same `PATCH /profiles/me` call as today.
+
+**Blocked on:** deciding this is worth building (no user demand yet), then
+confirming/enabling alias attributes on the Cognito user pool (a console/IaC
+change, same category as the pool's OTP challenge config in this class's own
+doc comment) before any code changes here.
+
+**Hook point:** `CognitoAuthService.userExists()` / `createPasswordLessUser()`
+/ `startUserAuth()` (the alias-attribute-dependent lookups), a new
+linking-specific endpoint (not `request-otp`/`confirm-otp`, which are
+sign-in-only and unauthenticated today).

@@ -5,6 +5,7 @@ on:
     branches: [master]
     paths:
       - "docs/openapi.yaml"
+      - "docs/swagger/**"
       - ".github/workflows/docs.yml"
   workflow_dispatch:
 
@@ -19,13 +20,13 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Lint OpenAPI spec
         run: npx --yes @redocly/cli@latest lint docs/openapi.yaml
@@ -36,18 +37,25 @@ jobs:
           npx --yes @redocly/cli@latest build-docs docs/openapi.yaml -o _site/index.html
           cp docs/openapi.yaml _site/openapi.yaml
 
-      - uses: actions/configure-pages@v5
+      - name: Add Swagger UI (Try it out)
+        run: |
+          npm install --no-save swagger-ui-dist
+          mkdir -p _site/swagger
+          cp docs/swagger/index.html _site/swagger/
+          cp node_modules/swagger-ui-dist/swagger-ui.css node_modules/swagger-ui-dist/swagger-ui-bundle.js _site/swagger/
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
 
   deploy:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

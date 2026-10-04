@@ -33,16 +33,15 @@ jobs:
 
       - name: Build Redoc page
         run: |
-          mkdir -p _site
-          npx --yes @redocly/cli@latest build-docs docs/openapi.yaml -o _site/index.html
+          mkdir -p _site/redoc
+          npx --yes @redocly/cli@latest build-docs docs/openapi.yaml -o _site/redoc/index.html
           cp docs/openapi.yaml _site/openapi.yaml
 
       - name: Add Swagger UI (Try it out)
         run: |
           npm install --no-save swagger-ui-dist
-          mkdir -p _site/swagger
-          cp docs/swagger/index.html _site/swagger/
-          cp node_modules/swagger-ui-dist/swagger-ui.css node_modules/swagger-ui-dist/swagger-ui-bundle.js _site/swagger/
+          cp docs/swagger/index.html _site/index.html
+          cp node_modules/swagger-ui-dist/swagger-ui.css node_modules/swagger-ui-dist/swagger-ui-bundle.js _site/
 
       - uses: actions/configure-pages@v6
 

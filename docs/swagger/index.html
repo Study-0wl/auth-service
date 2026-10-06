@@ -9,13 +9,18 @@
 <body>
   <div id="swagger-ui"></div>
   <script src="./swagger-ui-bundle.js"></script>
+  <script src="./swagger-ui-standalone-preset.js"></script>
   <script>
-    window.onload = function () {
+    window.onload = async function () {
+      const { latest, versions } = await (await fetch('./versions.json')).json();
       SwaggerUIBundle({
-        url: './openapi.yaml',
+        urls: versions.map(v => ({ name: v, url: './specs/' + v + '/openapi.yaml' })),
+        'urls.primaryName': latest,
         dom_id: '#swagger-ui',
         deepLinking: true,
-        tryItOutEnabled: true
+        tryItOutEnabled: true,
+        presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+        layout: 'StandaloneLayout'
       });
     };
   </script>

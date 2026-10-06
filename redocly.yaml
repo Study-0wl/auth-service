@@ -1,6 +1,0 @@
-extends:
-  - recommended
-
-rules:
-  # Every endpoint here is a pre-login call, so no auth scheme applies.
-  security-defined: off

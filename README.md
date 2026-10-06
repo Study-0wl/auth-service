@@ -1,6 +1,6 @@
 # auth-service
 
-Spring Boot (Java 17) implementation of `docs/openapi.yaml` — phone number + OTP
+Spring Boot (Java 17) implementation of `docs/specs/<version>/openapi.yaml` — phone number + OTP
 login/registration, backed by AWS Cognito. Companion to
 [../docs/studyowl-auth-flow.md](../docs/studyowl-auth-flow.md).
 

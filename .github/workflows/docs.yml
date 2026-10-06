@@ -30,7 +30,7 @@ jobs:
           node-version: 24
 
       - name: Build docs site
-        run: ./scripts/build-docs-site.sh
+        run: bash scripts/build-docs-site.sh
 
       - uses: actions/configure-pages@v6
 
